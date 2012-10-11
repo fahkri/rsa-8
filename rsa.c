@@ -33,9 +33,9 @@ bool miller_rabin_test(mpz_t n, int j)
 		return res;
 	}
 
-/* ******************************************************************************
- * write n − 1 as 2^s·d with d odd by factoring powers of 2 from n − 1
- * ******************************************************************************/
+	/* ******************************************************************************
+	 * write n − 1 as 2^s·d with d odd by factoring powers of 2 from n − 1
+	 * ******************************************************************************/
 
 	/*  q = n-1 */
 	mpz_t q;
@@ -59,9 +59,9 @@ bool miller_rabin_test(mpz_t n, int j)
 
 	//gmp_printf("n-1 = %Zd*2^%Zd \n", q, s);
 
-/* ******************************************************************************
- * The loop of testing
- * ******************************************************************************/
+	/* ******************************************************************************
+	 * The loop of testing
+	 * ******************************************************************************/
 
 	/*  init */
 
@@ -74,7 +74,7 @@ bool miller_rabin_test(mpz_t n, int j)
 	/*  the number x for testing */
 	mpz_t x;
 	mpz_init (x);
-	
+
 	/*  the random number a  */
 	mpz_t a;
 	mpz_init(a);
@@ -86,6 +86,10 @@ bool miller_rabin_test(mpz_t n, int j)
 	/*  the random generator */
 	gmp_randstate_t rs;
 	gmp_randinit_default(rs);
+	/* include time for a real alea */
+	time_t t;
+	time(&t);
+	gmp_randseed_ui(rs, t);
 
 	/*  the loop */
 	while (j-- > 0)
@@ -99,16 +103,17 @@ bool miller_rabin_test(mpz_t n, int j)
 		/* if x = 1 or x = n − 1 then do next LOOP  */
 		if (mpz_cmp_ui(x, 1) == 0 || mpz_cmp(x, n_1) == 0)  continue;
 
-	    mpz_set_ui(l, 0);  				// l = 0
+		mpz_set_ui(l, 0);  				// l = 0
 		while (mpz_cmp(l, s) < 0)
 		{
 			if (mpz_cmp(x, n_1) == 0) break;
 			mpz_powm_ui(x, x, 2, n); 	//  x = x^2 mod n
 			mpz_add_ui(l, l, 1); 		// l++
-			
+
 			/*  if x = 1 then return composite */
 			if (mpz_cmp_ui(x, 1) == 0) 
 			{
+				/*  clear memory */
 				mpz_clear(q);
 				mpz_clear(s);
 				mpz_clear(n_1);
@@ -122,6 +127,7 @@ bool miller_rabin_test(mpz_t n, int j)
 		}
 		if (mpz_cmp(x, n_1) == 0) continue;	
 
+		/*  clear memory */
 		mpz_clear(q);
 		mpz_clear(s);
 		mpz_clear(n_1);
@@ -134,6 +140,7 @@ bool miller_rabin_test(mpz_t n, int j)
 	}
 	res = true;
 
+	/*  clear memory */
 	mpz_clear(q);
 	mpz_clear(s);
 	mpz_clear(n_1);
@@ -154,12 +161,12 @@ int generate_keys ()
 	/*  init p, q, n, phi */
 	mpz_t p; mpz_t q; mpz_t n; mpz_t phi;
 	mpz_init (p); mpz_init (q); mpz_init(n); mpz_init (phi);
-	
+
 	/* generate aleatoire p & q 100 bits each. */
 	/*  the random generator */
 	gmp_randstate_t rs;
 	gmp_randinit_default(rs);
-	
+	/* include time for a real alea */
 	time_t t;
 	time(&t);
 	gmp_randseed_ui(rs, t);
@@ -177,11 +184,11 @@ int generate_keys ()
 	while (!cont)
 	{
 		mpz_urandomb (q, rs, P_Q_LENGHT);
-		cont = miller_rabin_test(p, MAX_DECOMPOSE);
+		cont = miller_rabin_test(q, MAX_DECOMPOSE);
 	}
 	gmp_randclear(rs);
 
-	// TODO p & q are the same after each exec !!
+	// FIXME q is not prime
 
 	mpz_mul(n, p, q); 				// n = pq
 
@@ -199,7 +206,7 @@ int generate_keys ()
 	mpz_t e; mpz_t tmp;
 	mpz_init (e); mpz_init (tmp);
 	mpz_set_ui (e, 2);
-	
+
 	mpz_gcd (tmp, e, phi); 		// tmp = gcd(e, phi)
 
 	/*  while tmp != 1 */
@@ -217,15 +224,15 @@ int generate_keys ()
 	gmp_printf("n : %Zd ,e : %Zd, d : %Zd ,phi : %Zd \n",n , e, d, phi);
 
 	// TODO write public.rsa (n,e) & private.rsa (d)
-	
+
 	// test
 	mpz_t m;
 	mpz_init(m);
 	mpz_set_ui(m, 18); 
 
 	mpz_t c; mpz_init (c); mpz_set_ui(c, 612220032);
-	chiffre (m, n, e);
-	dechiffre(c, d, n);
+	//chiffre (m, n, e);
+	//dechiffre(c, d, n);
 
 	mpz_clear(p);
 	mpz_clear(q);
@@ -265,7 +272,7 @@ int dechiffre (mpz_t chiffre, mpz_t d, mpz_t n)
 	mpz_init(m);
 
 	// TODO use private.rsa
-	
+
 	mpz_powm(m, chiffre, d, n);
 
 	gmp_printf("Dechiffre, n : %Zd d : %Zd, m : %Zd ,c : %Zd \n",n , d, m, chiffre);
@@ -279,10 +286,10 @@ int signature (mpz_t m, mpz_t d, mpz_t n)
 	mpz_init (h);
 
 	// TODO h(m) = MD5 (m)
-	
+
 	mpz_t s;
 	mpz_init (s);
-		
+
 	mpz_powm (s, h, d, n);
 
 	gmp_printf("n : %Zd d : %Zd, h : %Zd ,s : %Zd \n",n , d, h, s);
@@ -302,7 +309,7 @@ bool verification (mpz_t m, mpz_t s, mpz_t e, mpz_t n)
 	mpz_init (h);
 
 	// TODO h(m) = MD5 (m)
-	 
+
 
 	if (mpz_cmp (tmp, h))
 	{
@@ -320,15 +327,15 @@ int main(int argc, const char *argv[])
 	//gmp_printf("n : %Zd \n", n);
 	//printf("%i \n", miller_rabin_test(n,10));
 
+	/*  test chiffre & dechiffre */
+	//mpz_t m; mpz_t n; mpz_t e; mpz_t d;
+	//mpz_init(m); mpz_init(n); mpz_init(e); mpz_init(d);
+	//mpz_set_ui(m, 2); mpz_set_ui(n, 39), mpz_set_ui(e, 5); mpz_set_ui(d, 5);
+	//mpz_t c; mpz_init (c); mpz_set_ui(c, 32);
+	//chiffre (m, n, e);
+	//dechiffre(c, d, n);
+
 	generate_keys();
-
-	mpz_t m; mpz_t n; mpz_t e; mpz_t d;
-	mpz_init(m); mpz_init(n); mpz_init(e); mpz_init(d);
-	mpz_set_ui(m, 2); mpz_set_ui(n, 39), mpz_set_ui(e, 5); mpz_set_ui(d, 5);
-
-	mpz_t c; mpz_init (c); mpz_set_ui(c, 32);
-	chiffre (m, n, e);
-	dechiffre(c, d, n);
 
 	return EXIT_SUCCESS;
 }
