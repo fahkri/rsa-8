@@ -222,6 +222,21 @@ int generate_keys ()
 	gmp_printf("n : %Zd ,e : %Zd, d : %Zd ,phi : %Zd \n",n , e, d, phi);
 
 	// TODO write public.rsa (n,e) & private.rsa (d)
+	/*  write public.rsa (n,e) & private .rsa (d) */
+	FILE* pub = NULL;
+	pub = fopen ("public.rsa", "w+");
+	FILE* priv = NULL;
+	priv = fopen("private.rsa", "w+");
+
+	if (pub == NULL || priv == NULL)
+	{
+		printf ("Something goes wrong with the file public.rsa and private.rsa");
+		return EXIT_FAILURE;
+	}
+
+	gmp_fprintf (pub, "%Zd ; %Zd", n, e);
+	gmp_fprintf (priv, "%Zd", d);
+	
 
 	// test
 	mpz_t m;
