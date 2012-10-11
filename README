@@ -1,3 +1,11 @@
+Dependancy of this program :
+	this program depend on the GMP libraray : aptitude install libgmp-dev
+
+To use this programm
+	make
+	(chmod +x rsa)
+	./rsa
+
 
 miller rabin :
 	http://rosettacode.org/wiki/Miller-Rabin_primality_test
