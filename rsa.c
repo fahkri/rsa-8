@@ -188,8 +188,6 @@ int generate_keys ()
 	}
 	gmp_randclear(rs);
 
-	// FIXME q is not prime
-
 	mpz_mul(n, p, q); 				// n = pq
 
 	gmp_printf("n : %Zd ,p : %Zd, q : %Zd \n",n , p, q);
@@ -230,9 +228,9 @@ int generate_keys ()
 	mpz_init(m);
 	mpz_set_ui(m, 18); 
 
-	mpz_t c; mpz_init (c); mpz_set_ui(c, 612220032);
-	//chiffre (m, n, e);
-	//dechiffre(c, d, n);
+	mpz_t c; mpz_init (c); mpz_set_ui(c, 1889568);
+	chiffre (m, n, e);
+	dechiffre(c, d, n);
 
 	mpz_clear(p);
 	mpz_clear(q);
