@@ -3,7 +3,7 @@
  *
  *       Filename:  rsa.c
  *
- *    Description:  
+ *    Description:  Cryptologie TP2 - Simple implementation of RSA
  *
  *        Version:  1.0
  *        Created:  09/21/2012 10:48:48 AM
@@ -60,7 +60,7 @@ bool miller_rabin_test(mpz_t n, int j)
 	gmp_printf("n-1 = %Zd*2^%Zd \n", q, s);
 
 /* ******************************************************************************
- * The loop of testinnt generate_keys ()g
+ * The loop of testing
  * ******************************************************************************/
 
 	/*  init */
@@ -115,13 +115,18 @@ bool miller_rabin_test(mpz_t n, int j)
 	return res;
 }
 
+/*
+ * generate aleatoire key and 
+ * write them in private.rsa & public.rsa
+ */
 int generate_keys ()
 {
 	/*  init p, q, n, phi */
 	mpz_t p; mpz_t q; mpz_t n; mpz_t phi;
 	mpz_init (p); mpz_init (q); mpz_init(n); mpz_init (phi);
 	
-	// TODO generate p & q 100 bits each.
+	// TODO generate aleatoire p & q 100 bits each.
+	
 	mpz_set_ui (p, 3);
 	mpz_set_ui (q, 13);
 	
@@ -135,13 +140,13 @@ int generate_keys ()
 	mpz_add_ui (q, q, 1);
 
 	/*  we seek e : gcd(e, phi)= 1 */
-	
 	/*  init e, tmp */
 	mpz_t e; mpz_t tmp;
 	mpz_init (e); mpz_init (tmp);
 	mpz_set_ui (e, 2);
 	
 	mpz_gcd (tmp, e, phi); 		// tmp = gcd(e, phi)
+
 	/*  while tmp != 1 */
 	while (mpz_cmp_ui(tmp, 1) !=0)
 	{
@@ -161,11 +166,15 @@ int generate_keys ()
 	return EXIT_SUCCESS;
 }
 
-
+/*
+ * cypher a message using the public key
+ */
 int chiffre (mpz_t message, mpz_t n, mpz_t e)
 {
 	mpz_t c;
 	mpz_init(c);
+
+	// TODO use public.rsa
 
 	mpz_powm(c, message, e, n);
 
@@ -174,11 +183,16 @@ int chiffre (mpz_t message, mpz_t n, mpz_t e)
 	return EXIT_SUCCESS;
 }
 
+/*
+ * decypher the ciffre with the private key
+ */
 int dechiffre (mpz_t chiffre, mpz_t d, mpz_t n)
 {
 	mpz_t m;
 	mpz_init(m);
 
+	// TODO use private.rsa
+	
 	mpz_powm(m, chiffre, d, n);
 
 	gmp_printf("n : %Zd d : %Zd, m : %Zd ,c : %Zd \n",n , d, m, chiffre);
@@ -197,6 +211,8 @@ int signature (mpz_t m, mpz_t d, mpz_t n)
 	mpz_init (s);
 		
 	mpz_powm (s, h, d, n);
+
+	gmp_printf("n : %Zd d : %Zd, h : %Zd ,s : %Zd \n",n , d, h, s);
 
 	return EXIT_SUCCESS;
 }

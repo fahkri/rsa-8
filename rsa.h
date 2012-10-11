@@ -3,7 +3,7 @@
  *
  *       Filename:  rsa.h
  *
- *    Description:  
+ *    Description:  Header for rsa.h
  *
  *        Version:  1.0
  *        Created:  10/08/2012 10:57:21 AM
@@ -29,6 +29,10 @@
 
 bool miller_rabin_test(mpz_t n, int j);
 int generate_keys ();
+int chiffre (mpz_t message, mpz_t n, mpz_t e);
+int dechiffre (mpz_t chiffre, mpz_t d, mpz_t n);
+int signature (mpz_t m, mpz_t d, mpz_t n);
+bool verification (mpz_t m, mpz_t s, mpz_t e, mpz_t n);
 
 #endif
 
