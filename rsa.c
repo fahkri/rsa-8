@@ -221,32 +221,28 @@ int generate_keys ()
 
 	gmp_printf("n : %Zd ,e : %Zd, d : %Zd ,phi : %Zd \n",n , e, d, phi);
 
-	// TODO write public.rsa (n,e) & private.rsa (d)
 	/*  write public.rsa (n,e) & private .rsa (d) */
 	FILE* pub = NULL;
 	pub = fopen ("public.rsa", "w+");
 	FILE* priv = NULL;
 	priv = fopen("private.rsa", "w+");
 
+	/* if something goes wrong with the files */
 	if (pub == NULL || priv == NULL)
 	{
-		printf ("Something goes wrong with the file public.rsa and private.rsa");
+		printf ("Something goes wrong with the file public.rsa and private.rsa \n");
 		return EXIT_FAILURE;
 	}
-
-	gmp_fprintf (pub, "%Zd ; %Zd", n, e);
+	/*  print the public key in public.rsa */
+	gmp_fprintf (pub, "%Zd %Zd", n, e);
+	/*  print the private key in private.rsa */
 	gmp_fprintf (priv, "%Zd", d);
 	
+	/*  close files */
+	fclose(pub);
+	fclose(priv);
 
-	// test
-	mpz_t m;
-	mpz_init(m);
-	mpz_set_ui(m, 18); 
-
-	mpz_t c; mpz_init (c); mpz_set_ui(c, 1889568);
-	chiffre (m, n, e);
-	dechiffre(c, d, n);
-
+	/*  clear memory */
 	mpz_clear(p);
 	mpz_clear(q);
 	mpz_clear(n);
@@ -255,45 +251,93 @@ int generate_keys ()
 	mpz_clear(phi);
 	mpz_clear(tmp);
 
-
 	return EXIT_SUCCESS;
 }
 
 /*
  * cypher a message using the public key
  */
-int chiffre (mpz_t message, mpz_t n, mpz_t e)
+int chiffre ()
 {
+	/*  load the file message.rsa */
+	FILE* mes = NULL;
+	mes = fopen("message.rsa", "r"); 
+	if (mes == NULL)
+	{
+		printf("Something goes wrong with teh file message.rsa you must write a file message.rsa with the message to cypher. \n");
+		return EXIT_FAILURE;
+	}
+	/*  init message */
+	mpz_t m; mpz_init(m);
+	/*  load message from message.rsa */
+	gmp_fscanf(mes,"%Zd", m);
+
+
+	/*  load the public key from public.rsa */
+	FILE* pub = NULL;
+	pub = fopen("public.rsa", "r"); 
+	if (pub == NULL)
+	{
+		printf ("Something goes wrong with the file public.rsa you must use generate_keys first. \n");
+		return EXIT_FAILURE;
+	}
+	/*  init public key */
+	mpz_t n; mpz_t e;
+	mpz_init(n); mpz_init(e);
+	/*  load public key from public.rsa */
+	gmp_fscanf(pub, "%Zd %Zd", n, e);
+
+	/*  close public.rsa */
+	fclose(pub);
+		
+	/*  init cypher message */
 	mpz_t c;
 	mpz_init(c);
 
-	// TODO use public.rsa
+	/* cyper the message using modular exponentiation */
+	mpz_powm(c, m, e, n);
 
-	mpz_powm(c, message, e, n);
+	FILE* cypher = NULL;
+	cypher = fopen("cypher.rsa", "w+");
+	if (cypher == NULL)
+	{
+		printf ("Something goes wrong with the file cypher.rsa");
+		return EXIT_FAILURE;
+	}
+	/*  print the cypher message in cypher.rsa */
+	gmp_fprintf (cypher, "%Zd", c);
 
-	gmp_printf("Chiffre, n : %Zd ,e : %Zd, m : %Zd ,c : %Zd \n",n , e, message, c);
+	/*  close cypher.rsa */
+	fclose(cypher);
+
+	gmp_printf("Chiffre, n : %Zd ,e : %Zd, m : %Zd ,c : %Zd \n",n , e, m, c);
+
+	/*  clear memory */
+	mpz_clear(c);
+	mpz_clear(n);
+	mpz_clear(e);
 
 	return EXIT_SUCCESS;
 }
 
 /*
- * decypher the ciffre with the private key
+ * decypher the chiffre with the private key
  */
-int dechiffre (mpz_t chiffre, mpz_t d, mpz_t n)
+int dechiffre ()
 {
 	mpz_t m;
 	mpz_init(m);
 
 	// TODO use private.rsa
 
-	mpz_powm(m, chiffre, d, n);
+	//mpz_powm(m, chiffre, d, n);
 
-	gmp_printf("Dechiffre, n : %Zd d : %Zd, m : %Zd ,c : %Zd \n",n , d, m, chiffre);
+	//gmp_printf("Dechiffre, n : %Zd d : %Zd, m : %Zd ,c : %Zd \n",n , d, m, chiffre);
 
 	return EXIT_SUCCESS;
 }
 
-int signature (mpz_t m, mpz_t d, mpz_t n)
+int signature ()
 {
 	mpz_t h;
 	mpz_init (h);
@@ -303,20 +347,20 @@ int signature (mpz_t m, mpz_t d, mpz_t n)
 	mpz_t s;
 	mpz_init (s);
 
-	mpz_powm (s, h, d, n);
+//	mpz_powm (s, h, d, n);
 
-	gmp_printf("n : %Zd d : %Zd, h : %Zd ,s : %Zd \n",n , d, h, s);
+//	gmp_printf("n : %Zd d : %Zd, h : %Zd ,s : %Zd \n",n , d, h, s);
 
 	return EXIT_SUCCESS;
 }
 
-bool verification (mpz_t m, mpz_t s, mpz_t e, mpz_t n)
+bool verification ()
 {
 	bool res = false;
 	mpz_t tmp;
 	mpz_init(tmp);
 
-	mpz_powm(tmp, s, e, n);
+//	mpz_powm(tmp, s, e, n);
 
 	mpz_t h;
 	mpz_init (h);
@@ -324,7 +368,7 @@ bool verification (mpz_t m, mpz_t s, mpz_t e, mpz_t n)
 	// TODO h(m) = MD5 (m)
 
 
-	if (mpz_cmp (tmp, h))
+//	if (mpz_cmp (tmp, h))
 	{
 		res = true;
 	}
@@ -340,15 +384,15 @@ int main(int argc, const char *argv[])
 	//gmp_printf("n : %Zd \n", n);
 	//printf("%i \n", miller_rabin_test(n,10));
 
+	generate_keys();
+
 	/*  test chiffre & dechiffre */
-	//mpz_t m; mpz_t n; mpz_t e; mpz_t d;
-	//mpz_init(m); mpz_init(n); mpz_init(e); mpz_init(d);
-	//mpz_set_ui(m, 2); mpz_set_ui(n, 39), mpz_set_ui(e, 5); mpz_set_ui(d, 5);
-	//mpz_t c; mpz_init (c); mpz_set_ui(c, 32);
-	//chiffre (m, n, e);
+	mpz_t m;
+	mpz_init(m); 
+	mpz_set_ui(m, 25646); 
+	chiffre (m);
 	//dechiffre(c, d, n);
 
-	generate_keys();
 
 	return EXIT_SUCCESS;
 }
