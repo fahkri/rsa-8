@@ -29,7 +29,7 @@ bool miller_rabin_test(mpz_t n, int j)
 	/*  if n is even */
 	if (mpz_even_p(n) != 0)
 	{
-		printf("n is pair \n");
+		//printf("n is pair \n");
 		return res;
 	}
 
@@ -57,7 +57,7 @@ bool miller_rabin_test(mpz_t n, int j)
 	}
 	/*  n - 1 = 2^s.q */
 
-	gmp_printf("n-1 = %Zd*2^%Zd \n", q, s);
+	//gmp_printf("n-1 = %Zd*2^%Zd \n", q, s);
 
 /* ******************************************************************************
  * The loop of testing
@@ -94,6 +94,8 @@ bool miller_rabin_test(mpz_t n, int j)
 		mpz_add_ui(a, a, 2);         	// random from 2 to n-2
 		mpz_powm(x, a, q, n); 		  	// x = a^q mod n
 
+		gmp_printf("a : %Zd \n",a);
+
 		/* if x = 1 or x = n − 1 then do next LOOP  */
 		if (mpz_cmp_ui(x, 1) == 0 || mpz_cmp(x, n_1) == 0)  continue;
 
@@ -105,12 +107,25 @@ bool miller_rabin_test(mpz_t n, int j)
 			mpz_add_ui(l, l, 1); 		// l++
 			
 			/*  if x = 1 then return composite */
-			if (mpz_cmp_ui(x, 1) == 0) return res;
+			if (mpz_cmp_ui(x, 1) == 0) 
+			{
+				mpz_clear(q);
+				mpz_clear(s);
+				mpz_clear(n_1);
+				mpz_clear(n_3);
+				mpz_clear(x);
+				mpz_clear(a);
+				mpz_clear(l);
+				gmp_randclear(rs);
+				return res;
+			}
 		}
 		if (mpz_cmp(x, n_1) == 0) continue;	
 		return res;
 	}
 	res = true;
+
+	// TODO cleaning memory of rs
 
 	return res;
 }
@@ -125,12 +140,33 @@ int generate_keys ()
 	mpz_t p; mpz_t q; mpz_t n; mpz_t phi;
 	mpz_init (p); mpz_init (q); mpz_init(n); mpz_init (phi);
 	
-	// TODO generate aleatoire p & q 100 bits each.
+	/* generate aleatoire p & q 100 bits each. */
+	/*  the random generator */
+	gmp_randstate_t rs;
+	gmp_randinit_default(rs);
 	
-	mpz_set_ui (p, 3);
-	mpz_set_ui (q, 13);
-	
+	/*  generate p prime */
+	bool cont = false;
+	while (!cont)
+	{
+		mpz_urandomb (p, rs, P_Q_LENGHT);
+		cont = miller_rabin_test(p, MAX_DECOMPOSE);
+	}
+
+	/* generate q prime  */
+	cont = false;
+	while (!cont)
+	{
+		mpz_urandomb (q, rs, P_Q_LENGHT);
+		cont = miller_rabin_test(p, MAX_DECOMPOSE);
+	}
+	gmp_randclear(rs);
+
+	// TODO p & q are the same after each exec !!
+
 	mpz_mul(n, p, q); 				// n = pq
+
+	gmp_printf("n : %Zd ,p : %Zd, q : %Zd \n",n , p, q);
 
 	/*  phi = (p-1)(q-1) */
 	mpz_sub_ui(p, p, 1);

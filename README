@@ -9,3 +9,5 @@ To use this programm
 
 miller rabin :
 	http://rosettacode.org/wiki/Miller-Rabin_primality_test
+
+I choose gmp_randinit_default beacause this is not a real implementation.

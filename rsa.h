@@ -26,6 +26,7 @@
 #include <openssl/md5.h>
 
 #define MAX_DECOMPOSE 100
+#define P_Q_LENGHT 102
 
 bool miller_rabin_test(mpz_t n, int j);
 int generate_keys ();
