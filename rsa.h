@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <gmp.h>
+#include <time.h>
 #include <openssl/md5.h>
 
 #define MAX_DECOMPOSE 100

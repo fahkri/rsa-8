@@ -94,7 +94,7 @@ bool miller_rabin_test(mpz_t n, int j)
 		mpz_add_ui(a, a, 2);         	// random from 2 to n-2
 		mpz_powm(x, a, q, n); 		  	// x = a^q mod n
 
-		gmp_printf("a : %Zd \n",a);
+		//gmp_printf("a : %Zd \n",a);
 
 		/* if x = 1 or x = n − 1 then do next LOOP  */
 		if (mpz_cmp_ui(x, 1) == 0 || mpz_cmp(x, n_1) == 0)  continue;
@@ -121,12 +121,27 @@ bool miller_rabin_test(mpz_t n, int j)
 			}
 		}
 		if (mpz_cmp(x, n_1) == 0) continue;	
+
+		mpz_clear(q);
+		mpz_clear(s);
+		mpz_clear(n_1);
+		mpz_clear(n_3);
+		mpz_clear(x);
+		mpz_clear(a);
+		mpz_clear(l);
+		gmp_randclear(rs);
 		return res;
 	}
 	res = true;
 
-	// TODO cleaning memory of rs
-
+	mpz_clear(q);
+	mpz_clear(s);
+	mpz_clear(n_1);
+	mpz_clear(n_3);
+	mpz_clear(x);
+	mpz_clear(a);
+	mpz_clear(l);
+	gmp_randclear(rs);
 	return res;
 }
 
@@ -145,6 +160,10 @@ int generate_keys ()
 	gmp_randstate_t rs;
 	gmp_randinit_default(rs);
 	
+	time_t t;
+	time(&t);
+	gmp_randseed_ui(rs, t);
+
 	/*  generate p prime */
 	bool cont = false;
 	while (!cont)
@@ -198,6 +217,24 @@ int generate_keys ()
 	gmp_printf("n : %Zd ,e : %Zd, d : %Zd ,phi : %Zd \n",n , e, d, phi);
 
 	// TODO write public.rsa (n,e) & private.rsa (d)
+	
+	// test
+	mpz_t m;
+	mpz_init(m);
+	mpz_set_ui(m, 18); 
+
+	mpz_t c; mpz_init (c); mpz_set_ui(c, 612220032);
+	chiffre (m, n, e);
+	dechiffre(c, d, n);
+
+	mpz_clear(p);
+	mpz_clear(q);
+	mpz_clear(n);
+	mpz_clear(e);
+	mpz_clear(d);
+	mpz_clear(phi);
+	mpz_clear(tmp);
+
 
 	return EXIT_SUCCESS;
 }
@@ -214,7 +251,7 @@ int chiffre (mpz_t message, mpz_t n, mpz_t e)
 
 	mpz_powm(c, message, e, n);
 
-	gmp_printf("n : %Zd ,e : %Zd, m : %Zd ,c : %Zd \n",n , e, message, c);
+	gmp_printf("Chiffre, n : %Zd ,e : %Zd, m : %Zd ,c : %Zd \n",n , e, message, c);
 
 	return EXIT_SUCCESS;
 }
@@ -231,7 +268,7 @@ int dechiffre (mpz_t chiffre, mpz_t d, mpz_t n)
 	
 	mpz_powm(m, chiffre, d, n);
 
-	gmp_printf("n : %Zd d : %Zd, m : %Zd ,c : %Zd \n",n , d, m, chiffre);
+	gmp_printf("Dechiffre, n : %Zd d : %Zd, m : %Zd ,c : %Zd \n",n , d, m, chiffre);
 
 	return EXIT_SUCCESS;
 }
