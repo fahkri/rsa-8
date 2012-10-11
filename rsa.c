@@ -190,7 +190,7 @@ int generate_keys ()
 
 	mpz_mul(n, p, q); 				// n = pq
 
-	gmp_printf("n : %Zd ,p : %Zd, q : %Zd \n",n , p, q);
+	//gmp_printf("n : %Zd ,p : %Zd, q : %Zd \n",n , p, q);
 
 	/*  phi = (p-1)(q-1) */
 	mpz_sub_ui(p, p, 1);
@@ -219,7 +219,7 @@ int generate_keys ()
 	mpz_init (d);
 	mpz_powm_ui (d, e, -1, phi);
 
-	gmp_printf("n : %Zd ,e : %Zd, d : %Zd ,phi : %Zd \n",n , e, d, phi);
+	//gmp_printf("n : %Zd ,e : %Zd, d : %Zd ,phi : %Zd \n",n , e, d, phi);
 
 	/*  write public.rsa (n,e) & private .rsa (d) */
 	FILE* pub = NULL;
@@ -241,6 +241,14 @@ int generate_keys ()
 	/*  close files */
 	fclose(pub);
 	fclose(priv);
+
+	// FIXME bug in generating d 
+	
+	mpz_t tmmp; mpz_init (tmmp);
+	mpz_mul(tmmp, e, d);
+	mpz_mod (tmmp, tmmp, phi);
+
+	gmp_printf("%Zd, e: %Zd, d:%Zd, phi:%Zd \n", tmmp ,e,d,phi);
 
 	/*  clear memory */
 	mpz_clear(p);
@@ -264,13 +272,16 @@ int chiffre ()
 	mes = fopen("message.rsa", "r"); 
 	if (mes == NULL)
 	{
-		printf("Something goes wrong with teh file message.rsa you must write a file message.rsa with the message to cypher. \n");
+		printf("Something goes wrong with teh file message.rsa you must write a file \
+				message.rsa with the message to cypher. \n");
 		return EXIT_FAILURE;
 	}
 	/*  init message */
 	mpz_t m; mpz_init(m);
 	/*  load message from message.rsa */
 	gmp_fscanf(mes,"%Zd", m);
+	/*  close mes.rsa */
+	fclose(mes);
 
 
 	/*  load the public key from public.rsa */
@@ -278,7 +289,8 @@ int chiffre ()
 	pub = fopen("public.rsa", "r"); 
 	if (pub == NULL)
 	{
-		printf ("Something goes wrong with the file public.rsa you must use generate_keys first. \n");
+		printf ("Something goes wrong with the file public.rsa you must use \
+				generate_keys first. \n");
 		return EXIT_FAILURE;
 	}
 	/*  init public key */
@@ -286,7 +298,6 @@ int chiffre ()
 	mpz_init(n); mpz_init(e);
 	/*  load public key from public.rsa */
 	gmp_fscanf(pub, "%Zd %Zd", n, e);
-
 	/*  close public.rsa */
 	fclose(pub);
 		
@@ -306,16 +317,18 @@ int chiffre ()
 	}
 	/*  print the cypher message in cypher.rsa */
 	gmp_fprintf (cypher, "%Zd", c);
-
 	/*  close cypher.rsa */
 	fclose(cypher);
 
 	gmp_printf("Chiffre, n : %Zd ,e : %Zd, m : %Zd ,c : %Zd \n",n , e, m, c);
 
+	gmp_printf("The plain text message is : %Zd \n", m);
+
 	/*  clear memory */
 	mpz_clear(c);
 	mpz_clear(n);
 	mpz_clear(e);
+	mpz_clear(m);
 
 	return EXIT_SUCCESS;
 }
@@ -325,15 +338,67 @@ int chiffre ()
  */
 int dechiffre ()
 {
+	/*  load the cypher message from file */
+	FILE* cypher = NULL;
+	cypher = fopen("cypher.rsa", "r");
+	if (cypher == NULL)
+	{
+		printf ("Something goes wrong with the file cypher.rsa you must cypher a message before \
+				decypher it. \n");
+		return EXIT_FAILURE;
+	}
+	/*  init the cypher message */
+	mpz_t c; mpz_init(c);
+	/*  load the cypher message from cypher.rsa */
+	gmp_fscanf(cypher, "%Zd", c);
+	fclose(cypher);
+
+	/*  load the public key from file */
+	FILE* pub = NULL;
+	pub = fopen("public.rsa", "r");
+	if (pub == NULL)
+	{
+		printf ("Something goes wrong with the file public.rsa you must have cypher a message and \
+				the public key corresponding. \n ");
+		return EXIT_FAILURE;
+	}
+	/*  init the public key, only n is needed */
+	mpz_t n; mpz_init(n);
+	/*  load n from public.rsa */
+	gmp_fscanf(pub, "%Zd", n);
+	fclose(pub);
+
+	/*  load the private key from file */
+	FILE* priv = NULL;
+	priv = fopen("private.rsa", "r");
+	if (priv == NULL)
+	{
+		printf ("Something goes wrong with the file private.rsa you must have cypher \
+				a message and the private key corresponding. \n ");
+		return EXIT_FAILURE;
+	}
+	/*  init the private key */
+	mpz_t d; mpz_init (d);
+	/*  load e from private.rsa */
+	gmp_fscanf(priv, "%Zd", d);
+	fclose(priv);
+
+	/*  init the plain text message */
 	mpz_t m;
 	mpz_init(m);
 
-	// TODO use private.rsa
+	/*  decypher */
+	mpz_powm(m, c, d, n);
 
-	//mpz_powm(m, chiffre, d, n);
+	gmp_printf("Dechiffre, n : %Zd d : %Zd, m : %Zd ,c : %Zd \n",n , d, m, c);
 
-	//gmp_printf("Dechiffre, n : %Zd d : %Zd, m : %Zd ,c : %Zd \n",n , d, m, chiffre);
+	gmp_printf("The plain text message is : %Zd \n", m);
 
+	/*  clear memory */
+	mpz_clear (m);
+	mpz_clear (c);
+	mpz_clear (n);
+	mpz_clear (d);
 	return EXIT_SUCCESS;
 }
 
@@ -387,11 +452,8 @@ int main(int argc, const char *argv[])
 	generate_keys();
 
 	/*  test chiffre & dechiffre */
-	mpz_t m;
-	mpz_init(m); 
-	mpz_set_ui(m, 25646); 
-	chiffre (m);
-	//dechiffre(c, d, n);
+	chiffre ();
+	dechiffre();
 
 
 	return EXIT_SUCCESS;
