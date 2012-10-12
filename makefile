@@ -1,3 +1,3 @@
 rsa : rsa.c rsa.h
-	gcc -g -Wall -lgmp rsa.c -o rsa
+	gcc -g -Wall -lgmp -lssl rsa.c -o rsa
 
