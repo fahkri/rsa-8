@@ -201,6 +201,7 @@ int generate_keys ()
 
 	/*  we seek e : gcd(e, phi)= 1 */
 	/*  init e, tmp */
+	// TODO e must be alea generate
 	mpz_t e; mpz_t tmp;
 	mpz_init (e); mpz_init (tmp);
 	mpz_set_ui (e, 2);
@@ -217,7 +218,18 @@ int generate_keys ()
 	/*  we seek d : e.d = 1 mod phi */
 	mpz_t d;
 	mpz_init (d);
-	mpz_powm_ui (d, e, -1, phi);
+
+	/******************************************
+	 * Extended Euclidean Algorithm 
+	 * ****************************************/
+	mpz_t k; mpz_t a; mpz_t b;
+	mpz_init(k); mpz_init(a); mpz_init(b); 
+	mpz_set (a, e); mpz_set (b, d);
+	
+	/* d = e^-1 mod phi */
+	mpz_invert (d, e, phi);
+
+	//gmp_printf("should be 1 : %Zd \n", tmp);
 
 	//gmp_printf("n : %Zd ,e : %Zd, d : %Zd ,phi : %Zd \n",n , e, d, phi);
 
@@ -241,14 +253,6 @@ int generate_keys ()
 	/*  close files */
 	fclose(pub);
 	fclose(priv);
-
-	// FIXME bug in generating d 
-	
-	mpz_t tmmp; mpz_init (tmmp);
-	mpz_mul(tmmp, e, d);
-	mpz_mod (tmmp, tmmp, phi);
-
-	gmp_printf("%Zd, e: %Zd, d:%Zd, phi:%Zd \n", tmmp ,e,d,phi);
 
 	/*  clear memory */
 	mpz_clear(p);
@@ -433,7 +437,7 @@ bool verification ()
 	// TODO h(m) = MD5 (m)
 
 
-//	if (mpz_cmp (tmp, h))
+	//	if (mpz_cmp (tmp, h))
 	{
 		res = true;
 	}
