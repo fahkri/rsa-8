@@ -33,6 +33,18 @@ bool miller_rabin_test(mpz_t n, int j)
 		return res;
 	}
 
+	/*  if n <= 0 */
+	if (mpz_cmp_ui(n,0) <= 0)
+	{
+		return res;
+	}
+
+	/*  let's consider 1,2&3 as prime */
+	if (mpz_cmp_ui(n,3) <= 0)
+	{
+		return !res;
+	}
+
 	/* ******************************************************************************
 	 * write n − 1 as 2^s·d with d odd by factoring powers of 2 from n − 1
 	 * ******************************************************************************/
@@ -186,6 +198,7 @@ int generate_keys ()
 		mpz_urandomb (q, rs, P_Q_LENGHT);
 		cont = miller_rabin_test(q, MAX_DECOMPOSE);
 	}
+	/*  clear rs  */
 	gmp_randclear(rs);
 
 	mpz_mul(n, p, q); 				// n = pq
@@ -218,7 +231,6 @@ int generate_keys ()
 	/*  we seek d : e.d = 1 mod phi */
 	mpz_t d;
 	mpz_init (d);
-
 	/* d = e^-1 mod phi */
 	mpz_invert (d, e, phi);
 
@@ -317,9 +329,9 @@ int chiffre ()
 	/*  close cypher.rsa */
 	fclose(cypher);
 
-	gmp_printf("Chiffre, n : %Zd ,e : %Zd, m : %Zd ,c : %Zd \n",n , e, m, c);
+	//gmp_printf("Chiffre, n : %Zd ,e : %Zd, m : %Zd ,c : %Zd \n",n , e, m, c);
 
-	gmp_printf("The plain text message is : %Zd \n", m);
+	gmp_printf("Chiffre, The plain text message is : %Zd \n", m);
 
 	/*  clear memory */
 	mpz_clear(c);
@@ -387,9 +399,9 @@ int dechiffre ()
 	/*  decypher */
 	mpz_powm(m, c, d, n);
 
-	gmp_printf("Dechiffre, n : %Zd d : %Zd, m : %Zd ,c : %Zd \n",n , d, m, c);
+	//gmp_printf("Dechiffre, n : %Zd d : %Zd, m : %Zd ,c : %Zd \n",n , d, m, c);
 
-	gmp_printf("The plain text message is : %Zd \n", m);
+	gmp_printf("Dechiffre, The plain text message is : %Zd \n", m);
 
 	/*  clear memory */
 	mpz_clear (m);
@@ -401,39 +413,154 @@ int dechiffre ()
 
 int signature ()
 {
-	mpz_t h;
-	mpz_init (h);
+	/*  load the message to sign */
+	FILE* mes = NULL;
+	mes = fopen("message.rsa", "r");
+	if (mes == NULL)
+	{
+		printf("Something goes wrong with teh file message.rsa you must write a file \
+				message.rsa with the message to signe. \n");
+		return EXIT_FAILURE;
+	}
+	mpz_t m; mpz_init (m);
+	gmp_fscanf(mes, "%Zd", m); 
+	fclose(mes);
+
+	/*  load the private key d to sign */
+	FILE* priv = NULL;
+	priv = fopen("private.rsa", "r");
+	if (priv == NULL)
+	{
+		printf("Something goes wrong with teh file private.rsa you must have generate \
+				rsa keys. \n");
+		return EXIT_FAILURE;
+	}
+	mpz_t d; mpz_init (d);
+	gmp_fscanf(priv, "%Zd", d); 
+	fclose(priv);
+
+	/*  load the public key n to sign */
+	FILE* pub = NULL;
+	pub = fopen("public.rsa", "r");
+	if (pub == NULL)
+	{
+		printf("Something goes wrong with teh file public.rsa you must have generate \
+				rsa keys. \n");
+		return EXIT_FAILURE;
+	}
+	mpz_t n; mpz_init (n);
+	gmp_fscanf(pub, "%Zd", n); 
+	fclose(pub);
+
+	char *string = "coycou md5";
+	unsigned char result [MD5_DIGEST_LENGTH];
+
+	//MD5(string, strlen(string), result);
 
 	// TODO h(m) = MD5 (m)
+	// en attendant on admet h(m)=m
+	mpz_t h;
+	mpz_init (h);
+	mpz_set (h, m);
 
+	/*  sign the hashed message */
 	mpz_t s;
 	mpz_init (s);
+	mpz_powm (s, h, d, n);
 
-//	mpz_powm (s, h, d, n);
+	//gmp_printf("h : %Zd ,s : %Zd \n", h, s);
 
-//	gmp_printf("n : %Zd d : %Zd, h : %Zd ,s : %Zd \n",n , d, h, s);
+	/*  print the signature in sign.rsa */
+	FILE* sign = NULL;
+	sign = fopen("sign.rsa", "w+");
+	if (sign == NULL)
+	{
+		printf ("Something goes wrong with the file sign.rsa. \n");
+		return EXIT_FAILURE;
+	}
+	/*  print the signature in sign.rsa */
+	gmp_fprintf (sign, "%Zd", s);
+	/*  close sign.rsa */
+	fclose(sign);
 
+	/*  clear memory */
+	mpz_clear (m);
+	mpz_clear (n);
+	mpz_clear (d);
+	mpz_clear (h);
+	mpz_clear (s);
 	return EXIT_SUCCESS;
 }
 
 bool verification ()
 {
 	bool res = false;
-	mpz_t tmp;
-	mpz_init(tmp);
 
-//	mpz_powm(tmp, s, e, n);
+	/*  load the public key n,e to verify */
+	FILE* pub = NULL;
+	pub = fopen("public.rsa", "r");
+	if (pub == NULL)
+	{
+		printf("Something goes wrong with teh file public.rsa you must have generate \
+				rsa keys. \n");
+		return EXIT_FAILURE;
+	}
+	mpz_t n; mpz_init (n);
+	mpz_t e; mpz_init (e);
+	gmp_fscanf(pub, "%Zd" "%Zd", n, e); 
+	fclose(pub);
 
-	mpz_t h;
-	mpz_init (h);
+	/*  load the signature */
+	FILE* sign = NULL;
+	sign = fopen("sign.rsa", "r");
+	if (sign == NULL)
+	{
+		printf ("Something goes wrong with the file sign.rsa, you must use sign first. \n");
+		return EXIT_FAILURE;
+	}
+	mpz_t s; mpz_init (s);
+	gmp_fscanf(sign, "%Zd", s); 
+	/*  close sign.rsa */
+	fclose(sign);
+
+	/*  load the message to verify */
+	FILE* mes = NULL;
+	mes = fopen("message.rsa", "r");
+	if (mes == NULL)
+	{
+		printf("Something goes wrong with teh file message.rsa you must write a file \
+				message.rsa with the message to signe. \n");
+		return EXIT_FAILURE;
+	}
+	mpz_t m; mpz_init (m);
+	gmp_fscanf(mes, "%Zd", m); 
+	fclose(mes);
+
+	/*  h_t = s^e mod n */
+	mpz_t h_t; mpz_init (h_t);
+	mpz_powm(h_t, s, e, n);
 
 	// TODO h(m) = MD5 (m)
+	// en attendant on admet h(m)=m
+	mpz_t h; mpz_init (h);
+	mpz_set (h, m);
 
-
-	//	if (mpz_cmp (tmp, h))
+	if (mpz_cmp (h_t, h) == 0)
 	{
 		res = true;
 	}
+
+	//gmp_printf("h : %Zd ,h_t : %Zd \n", h, h_t);
+
+	/*  clear memory */
+	mpz_clear (h_t);
+	mpz_clear (s);
+	mpz_clear (e);
+	mpz_clear (n);
+	mpz_clear (h);
+	mpz_clear (m);
+
+	printf ("verif sign : %i \n", res);
 
 	return res;
 }
@@ -451,6 +578,8 @@ int main(int argc, const char *argv[])
 	/*  test chiffre & dechiffre */
 	chiffre ();
 	dechiffre();
+	signature();
+	verification ();
 
 
 	return EXIT_SUCCESS;
