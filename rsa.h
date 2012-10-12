@@ -30,6 +30,7 @@
 #define MAX_DECOMPOSE 100
 #define P_Q_LENGHT 102
 #define MAX_E 200
+#define MAX_LENGTH 500
 
 bool miller_rabin_test(mpz_t n, int j);
 int generate_keys ();

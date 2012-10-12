@@ -1,5 +1,6 @@
 Dependancy of this program :
 	this program depend on the GMP libraray : aptitude install libgmp-dev
+	this programme use OpenSSL library installed on must computer
 
 To use this programm
 	make
