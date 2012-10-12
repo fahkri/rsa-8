@@ -22,12 +22,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 #include <gmp.h>
 #include <time.h>
 #include <openssl/md5.h>
 
 #define MAX_DECOMPOSE 100
 #define P_Q_LENGHT 102
+#define MAX_E 200
 
 bool miller_rabin_test(mpz_t n, int j);
 int generate_keys ();
