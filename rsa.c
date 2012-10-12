@@ -219,13 +219,6 @@ int generate_keys ()
 	mpz_t d;
 	mpz_init (d);
 
-	/******************************************
-	 * Extended Euclidean Algorithm 
-	 * ****************************************/
-	mpz_t k; mpz_t a; mpz_t b;
-	mpz_init(k); mpz_init(a); mpz_init(b); 
-	mpz_set (a, e); mpz_set (b, d);
-	
 	/* d = e^-1 mod phi */
 	mpz_invert (d, e, phi);
 
