@@ -198,10 +198,9 @@ int generate_keys ()
 		mpz_urandomb (q, rs, P_Q_LENGHT);
 		cont = miller_rabin_test(q, MAX_DECOMPOSE);
 	}
-	/*  clear rs  */
-	gmp_randclear(rs);
 
-	mpz_mul(n, p, q); 				// n = pq
+	/*  n = pq */
+	mpz_mul(n, p, q);
 
 	//gmp_printf("n : %Zd ,p : %Zd, q : %Zd \n",n , p, q);
 
@@ -212,21 +211,28 @@ int generate_keys ()
 	mpz_add_ui (p, p, 1);
 	mpz_add_ui (q, q, 1);
 
-	/*  we seek e : gcd(e, phi)= 1 */
+	/*  we seek e : gcd(e, phi)= 1, with e alea < MAX_E + 3*/
 	/*  init e, tmp */
-	// TODO e must be alea generate
 	mpz_t e; mpz_t tmp;
 	mpz_init (e); mpz_init (tmp);
-	mpz_set_ui (e, 2);
+	mpz_t max; mpz_init (max);
+	mpz_set_ui(max, MAX_E);
+	/*  init e */
+	mpz_urandomm(e, rs, max);     	// random from 0 to MAX_E
+	mpz_add_ui(e, e, 3);         	// random from 3 to MAX_E + 3
 
 	mpz_gcd (tmp, e, phi); 		// tmp = gcd(e, phi)
 
 	/*  while tmp != 1 */
 	while (mpz_cmp_ui(tmp, 1) !=0)
 	{
-		mpz_add_ui (e, e, 1); 		// e++
+		mpz_urandomm(e, rs, max);     	// random from 0 to MAX_E
+		mpz_add_ui(e, e, 3);         	// random from 3 to MAX_E + 3
+
 		mpz_gcd (tmp, e, phi); 		// tmp = gcd(e, phi)
 	}
+	/*  clear rs  */
+	gmp_randclear(rs);
 
 	/*  we seek d : e.d = 1 mod phi */
 	mpz_t d;
@@ -236,7 +242,7 @@ int generate_keys ()
 
 	//gmp_printf("should be 1 : %Zd \n", tmp);
 
-	//gmp_printf("n : %Zd ,e : %Zd, d : %Zd ,phi : %Zd \n",n , e, d, phi);
+	gmp_printf("n : %Zd ,e : %Zd, d : %Zd ,phi : %Zd \n",n , e, d, phi);
 
 	/*  write public.rsa (n,e) & private .rsa (d) */
 	FILE* pub = NULL;
