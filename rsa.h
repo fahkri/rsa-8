@@ -25,7 +25,7 @@
 #include <string.h>
 #include <gmp.h>
 #include <time.h>
-#include <openssl/md5.h>
+#include <openssl/sha.h>
 
 #define MAX_DECOMPOSE 100
 #define P_Q_LENGHT 102
