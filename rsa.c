@@ -242,7 +242,7 @@ int generate_keys ()
 
 	//gmp_printf("should be 1 : %Zd \n", tmp);
 
-	gmp_printf("n : %Zd ,e : %Zd, d : %Zd ,phi : %Zd \n",n , e, d, phi);
+	//gmp_printf("n : %Zd ,e : %Zd, d : %Zd ,phi : %Zd \n",n , e, d, phi);
 
 	/*  write public.rsa (n,e) & private .rsa (d) */
 	FILE* pub = NULL;
@@ -340,13 +340,37 @@ int chiffre ()
 	gmp_printf("Chiffre, The plain text message is : %Zd \n", m);
 
 	/*  clear memory */
-	mpz_clear(c);
-	mpz_clear(n);
-	mpz_clear(e);
-	mpz_clear(m);
+	// XXX
+	mpz_clears(c,n,e,m,NULL);
+	//mpz_clear(c);
+	//mpz_clear(n);
+	//mpz_clear(e);
+	//mpz_clear(m);
 
 	return EXIT_SUCCESS;
 }
+
+
+/* x 
+void  hash_whirlpool(mpz_t v,FILE* input){
+	struct NESSIEstruct w;        
+	u8 digest[DIGESTBYTES];
+	int i;
+	unsigned char c;
+	NESSIEinit(&w);
+	while(fscanf(input,"%c",&c) != EOF ){
+
+		NESSIEadd(&c, 8, &w);
+	}
+	NESSIEfinalize(&w, digest);
+	mpz_set_ui(v,0UL);
+	for(i = 0;i<DIGESTBYTES;i++){
+		mpz_mul_2exp (v,v, 8UL);
+		mpz_add_ui(v,v,digest[i]);
+	}
+}
+*/
+
 
 /*
  * decypher the chiffre with the private key
@@ -419,19 +443,6 @@ int dechiffre ()
 
 int signature ()
 {
-	/*  load the message to sign */
-	FILE* mes = NULL;
-	mes = fopen("message.rsa", "r");
-	if (mes == NULL)
-	{
-		printf("Something goes wrong with teh file message.rsa you must write a file \
-				message.rsa with the message to signe. \n");
-		return EXIT_FAILURE;
-	}
-	mpz_t m; mpz_init (m);
-	gmp_fscanf(mes, "%Zd", m); 
-	fclose(mes);
-
 	/*  load the private key d to sign */
 	FILE* priv = NULL;
 	priv = fopen("private.rsa", "r");
@@ -458,16 +469,43 @@ int signature ()
 	gmp_fscanf(pub, "%Zd", n); 
 	fclose(pub);
 
-	char *string = "coycou md5";
-	unsigned char result [MD5_DIGEST_LENGTH];
+	/*  load the message to sign */
+	FILE* mes = NULL;
+	mes = fopen("message.rsa", "r");
+	if (mes == NULL)
+	{
+		printf("Something goes wrong with teh file message.rsa you must write a file \
+				message.rsa with the message to signe. \n");
+		return EXIT_FAILURE;
+	}
+	char my_string [MAX_LENGTH] = "";
+	fgets(my_string, MAX_LENGTH, mes);
+	mpz_t m; mpz_init (m);
+	gmp_fscanf(mes, "%Zd", m); 
+	fclose(mes);
 
-	//MD5(string, strlen(string), result);
-
-	// TODO h(m) = MD5 (m)
+	// TODO h(m) = sha (m)
 	// en attendant on admet h(m)=m
 	mpz_t h;
 	mpz_init (h);
-	mpz_set (h, m);
+	mpz_set_ui (h, 0);
+	
+	int i;
+	unsigned char result[SHA_DIGEST_LENGTH];
+
+	SHA1(my_string, strlen(my_string), result);
+
+
+	for(i = 0; i < SHA_DIGEST_LENGTH; i++)
+	{
+		mpz_mul_2exp (h, h, 8UL);
+		mpz_add_ui(h,h,result[i]);
+
+		printf("%c/%i/%02x%c", result[i], result[i], result[i], i < (SHA_DIGEST_LENGTH-1) ? ' ' : '\n');
+	}
+	// FIXME pas le bon mais l idee est là
+
+	gmp_printf ("%Zd \n", h);
 
 	/*  sign the hashed message */
 	mpz_t s;
