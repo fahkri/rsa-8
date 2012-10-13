@@ -126,13 +126,7 @@ bool miller_rabin_test(mpz_t n, int j)
 			if (mpz_cmp_ui(x, 1) == 0) 
 			{
 				/*  clear memory */
-				mpz_clear(q);
-				mpz_clear(s);
-				mpz_clear(n_1);
-				mpz_clear(n_3);
-				mpz_clear(x);
-				mpz_clear(a);
-				mpz_clear(l);
+				mpz_clears(q, s, n_1, n_3, x, a, l, NULL);
 				gmp_randclear(rs);
 				return res;
 			}
@@ -140,26 +134,14 @@ bool miller_rabin_test(mpz_t n, int j)
 		if (mpz_cmp(x, n_1) == 0) continue;	
 
 		/*  clear memory */
-		mpz_clear(q);
-		mpz_clear(s);
-		mpz_clear(n_1);
-		mpz_clear(n_3);
-		mpz_clear(x);
-		mpz_clear(a);
-		mpz_clear(l);
+		mpz_clears(q, s, n_1, n_3, x, a, l, NULL);
 		gmp_randclear(rs);
 		return res;
 	}
 	res = true;
 
 	/*  clear memory */
-	mpz_clear(q);
-	mpz_clear(s);
-	mpz_clear(n_1);
-	mpz_clear(n_3);
-	mpz_clear(x);
-	mpz_clear(a);
-	mpz_clear(l);
+	mpz_clears(q, s, n_1, n_3, x, a, l, NULL);
 	gmp_randclear(rs);
 	return res;
 }
@@ -170,6 +152,8 @@ bool miller_rabin_test(mpz_t n, int j)
  */
 int generate_keys ()
 {
+	printf ("generate keys \n");
+
 	/*  init p, q, n, phi */
 	mpz_t p; mpz_t q; mpz_t n; mpz_t phi;
 	mpz_init (p); mpz_init (q); mpz_init(n); mpz_init (phi);
@@ -258,21 +242,17 @@ int generate_keys ()
 	}
 	/*  print the public key in public.rsa */
 	gmp_fprintf (pub, "%Zd %Zd", n, e);
+	gmp_printf ("public key : %Zd %Zd \n", n, e);
 	/*  print the private key in private.rsa */
 	gmp_fprintf (priv, "%Zd", d);
+	gmp_printf ("private key : %Zd \n", d);
 	
 	/*  close files */
 	fclose(pub);
 	fclose(priv);
 
 	/*  clear memory */
-	mpz_clear(p);
-	mpz_clear(q);
-	mpz_clear(n);
-	mpz_clear(e);
-	mpz_clear(d);
-	mpz_clear(phi);
-	mpz_clear(tmp);
+	mpz_clears(q, p, n, e, d, phi, tmp, NULL);
 
 	return EXIT_SUCCESS;
 }
@@ -282,6 +262,8 @@ int generate_keys ()
  */
 int chiffre ()
 {
+	printf ("cypher the message \n");
+
 	/*  load the file message.rsa */
 	FILE* mes = NULL;
 	mes = fopen("message.rsa", "r"); 
@@ -340,12 +322,7 @@ int chiffre ()
 	gmp_printf("Chiffre, The plain text message is : %Zd \n", m);
 
 	/*  clear memory */
-	// XXX
 	mpz_clears(c,n,e,m,NULL);
-	//mpz_clear(c);
-	//mpz_clear(n);
-	//mpz_clear(e);
-	//mpz_clear(m);
 
 	return EXIT_SUCCESS;
 }
@@ -377,6 +354,8 @@ void  hash_whirlpool(mpz_t v,FILE* input){
  */
 int dechiffre ()
 {
+	printf ("decypher the message \n");
+
 	/*  load the cypher message from file */
 	FILE* cypher = NULL;
 	cypher = fopen("cypher.rsa", "r");
@@ -434,15 +413,14 @@ int dechiffre ()
 	gmp_printf("Dechiffre, The plain text message is : %Zd \n", m);
 
 	/*  clear memory */
-	mpz_clear (m);
-	mpz_clear (c);
-	mpz_clear (n);
-	mpz_clear (d);
+	mpz_clears(m, c, n,d, NULL);
 	return EXIT_SUCCESS;
 }
 
 int signature ()
 {
+	printf("sign the message \n");
+
 	/*  load the private key d to sign */
 	FILE* priv = NULL;
 	priv = fopen("private.rsa", "r");
@@ -495,17 +473,14 @@ int signature ()
 
 	SHA1(my_string, strlen(my_string), result);
 
-
 	for(i = 0; i < SHA_DIGEST_LENGTH; i++)
 	{
 		mpz_mul_2exp (h, h, 8UL);
 		mpz_add_ui(h,h,result[i]);
-
-		printf("%c/%i/%02x%c", result[i], result[i], result[i], i < (SHA_DIGEST_LENGTH-1) ? ' ' : '\n');
 	}
 	// FIXME pas le bon mais l idee est là
 
-	gmp_printf ("%Zd \n", h);
+	gmp_printf ("hash : %Zd \n", h);
 
 	/*  sign the hashed message */
 	mpz_t s;
@@ -524,20 +499,19 @@ int signature ()
 	}
 	/*  print the signature in sign.rsa */
 	gmp_fprintf (sign, "%Zd", s);
+	gmp_printf ("sign : %Zd", s);
 	/*  close sign.rsa */
 	fclose(sign);
 
 	/*  clear memory */
-	mpz_clear (m);
-	mpz_clear (n);
-	mpz_clear (d);
-	mpz_clear (h);
-	mpz_clear (s);
+	mpz_clears(m, n, d, h, s, NULL);
 	return EXIT_SUCCESS;
 }
 
 bool verification ()
 {
+	printf("verify the signed message \n");
+
 	bool res = false;
 
 	/*  load the public key n,e to verify */
@@ -597,12 +571,7 @@ bool verification ()
 	//gmp_printf("h : %Zd ,h_t : %Zd \n", h, h_t);
 
 	/*  clear memory */
-	mpz_clear (h_t);
-	mpz_clear (s);
-	mpz_clear (e);
-	mpz_clear (n);
-	mpz_clear (h);
-	mpz_clear (m);
+	mpz_clears (h_t, s, e, n, h, m, NULL);
 
 	printf ("verif sign : %i \n", res);
 
