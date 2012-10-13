@@ -7,6 +7,8 @@ To use this programm
 	(chmod +x rsa)
 	./rsa
 
+The SHA1 hash function as knwon issues do not use this code for a real application there is no real security 
+Use SHA2 (SHA3 soon) instead.
 
 miller rabin :
 	http://rosettacode.org/wiki/Miller-Rabin_primality_test
