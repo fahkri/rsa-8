@@ -458,21 +458,21 @@ int signature ()
 	}
 	char my_string [MAX_LENGTH] = "";
 	fgets(my_string, MAX_LENGTH, mes);
-	mpz_t m; mpz_init (m);
-	gmp_fscanf(mes, "%Zd", m); 
 	fclose(mes);
 
-	// TODO h(m) = sha (m)
-	// en attendant on admet h(m)=m
+	/*  prepare result for the hash */
+	unsigned char result[SHA_DIGEST_LENGTH];
+
+	/*  use openssl SHA1 hash function */
+	SHA1(my_string, strlen(my_string), result);
+
+
+	/*  init h for the hash */
 	mpz_t h;
 	mpz_init (h);
 	mpz_set_ui (h, 0);
-	
+	/*  load the hash on h */
 	int i;
-	unsigned char result[SHA_DIGEST_LENGTH];
-
-	SHA1(my_string, strlen(my_string), result);
-
 	for(i = 0; i < SHA_DIGEST_LENGTH; i++)
 	{
 		mpz_mul_2exp (h, h, 8UL);
@@ -504,7 +504,7 @@ int signature ()
 	fclose(sign);
 
 	/*  clear memory */
-	mpz_clears(m, n, d, h, s, NULL);
+	mpz_clears(n, d, h, s, NULL);
 	return EXIT_SUCCESS;
 }
 
@@ -550,18 +550,33 @@ bool verification ()
 				message.rsa with the message to signe. \n");
 		return EXIT_FAILURE;
 	}
-	mpz_t m; mpz_init (m);
-	gmp_fscanf(mes, "%Zd", m); 
+	char my_string [MAX_LENGTH] = "";
+	fgets(my_string, MAX_LENGTH, mes);
 	fclose(mes);
 
 	/*  h_t = s^e mod n */
 	mpz_t h_t; mpz_init (h_t);
 	mpz_powm(h_t, s, e, n);
 
-	// TODO h(m) = MD5 (m)
+	// TODO h(m) = sha (m)
 	// en attendant on admet h(m)=m
-	mpz_t h; mpz_init (h);
-	mpz_set (h, m);
+	mpz_t h;
+	mpz_init (h);
+	mpz_set_ui (h, 0);
+	
+	int i;
+	unsigned char result[SHA_DIGEST_LENGTH];
+
+	SHA1(my_string, strlen(my_string), result);
+
+	for(i = 0; i < SHA_DIGEST_LENGTH; i++)
+	{
+		mpz_mul_2exp (h, h, 8UL);
+		mpz_add_ui(h,h,result[i]);
+	}
+	// FIXME pas le bon mais l idee est là
+
+	gmp_printf ("hash : %Zd \n", h);
 
 	if (mpz_cmp (h_t, h) == 0)
 	{
@@ -571,7 +586,7 @@ bool verification ()
 	//gmp_printf("h : %Zd ,h_t : %Zd \n", h, h_t);
 
 	/*  clear memory */
-	mpz_clears (h_t, s, e, n, h, m, NULL);
+	mpz_clears (h_t, s, e, n, h, NULL);
 
 	printf ("verif sign : %i \n", res);
 
