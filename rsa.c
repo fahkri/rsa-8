@@ -466,7 +466,6 @@ int signature ()
 	/*  use openssl SHA1 hash function */
 	SHA1(my_string, strlen(my_string), result);
 
-
 	/*  init h for the hash */
 	mpz_t h;
 	mpz_init (h);
@@ -478,7 +477,6 @@ int signature ()
 		mpz_mul_2exp (h, h, 8UL);
 		mpz_add_ui(h,h,result[i]);
 	}
-	// FIXME pas le bon mais l idee est là
 
 	gmp_printf ("hash : %Zd \n", h);
 
@@ -499,7 +497,7 @@ int signature ()
 	}
 	/*  print the signature in sign.rsa */
 	gmp_fprintf (sign, "%Zd", s);
-	gmp_printf ("sign : %Zd", s);
+	gmp_printf ("sign : %Zd \n", s);
 	/*  close sign.rsa */
 	fclose(sign);
 
@@ -593,6 +591,17 @@ bool verification ()
 	return res;
 }
 
+int wrong_option ()
+{
+	printf ("use of rsa : \n \
+				rsa generate : generate the rsa keys \n \
+				rsa cypher   : cypher the file message.rsa \n  \
+				rsa decypher : decypher the file cypher.rsa \n \
+				rsa sign     : sign the file message.rsa \n \ 
+				rsa verify   : verify the file sign.rsa according to message.rsa\n");
+	return EXIT_SUCCESS;
+}
+
 int main(int argc, const char *argv[])
 {	
 	/*  test miller rabin */
@@ -601,14 +610,61 @@ int main(int argc, const char *argv[])
 	//gmp_printf("n : %Zd \n", n);
 	//printf("%i \n", miller_rabin_test(n,10));
 
-	generate_keys();
+	if (argc <= 1)
+	{
+		wrong_option();
+	}else
+	{
+		int option = 0;
+		if (strcmp(argv[1], "generate") ==0 )
+			option = 1;
+
+		if (strcmp(argv[1], "cypher") ==0 )
+			option = 2;
+		
+		if (strcmp(argv[1], "decypher") ==0 )
+			option = 3;
+
+		if (strcmp(argv[1], "sign") ==0 )
+			option = 4;
+
+		if (strcmp(argv[1], "verify") ==0 )
+			option = 5;
+
+		switch (option)
+		{
+			case 1:
+				generate_keys();
+				break;
+			case 2:
+				chiffre();
+				break;
+			case 3:
+				dechiffre();
+				break;
+			case 4:
+				signature();
+				break;
+			case 5:
+				verification();
+				break;
+			default :
+				wrong_option();
+				break;
+		}
+	}
+
+
+	/*  test generate_keys */
+	//generate_keys();
 
 	/*  test chiffre & dechiffre */
-	chiffre ();
-	dechiffre();
-	signature();
-	verification ();
-
+	//chiffre ();
+	//dechiffre();
+	/*  test sign & verif */
+	//signature();
+	//verification ();
+	
 
 	return EXIT_SUCCESS;
 }
