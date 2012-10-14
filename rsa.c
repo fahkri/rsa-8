@@ -5,9 +5,9 @@
  *
  *    Description:  Cryptologie TP2 - Simple implementation of RSA
  *
- *        Version:  1.0
- *        Created:  09/21/2012 10:48:48 AM
- *       Revision:  none
+ *        Version:  1.1
+ *        Created:  09/21/2012 10:48:48
+ *       Revision:  10/14/2012 17:32:00
  *       Compiler:  gcc
  *
  *         Author:  Matthieu Keller (keller.mdpa@gmail.com) 
@@ -147,12 +147,12 @@ bool miller_rabin_test(mpz_t n, int j)
 }
 
 /*
- * generate aleatoire key and 
+ * generate aleatoire keys and 
  * write them in private.rsa & public.rsa
  */
 int generate_keys ()
 {
-	printf ("generate keys \n");
+	printf ("Generate keys \n");
 
 	/*  init p, q, n, phi */
 	mpz_t p; mpz_t q; mpz_t n; mpz_t phi;
@@ -260,9 +260,9 @@ int generate_keys ()
 /*
  * cypher a message using the public key
  */
-int chiffre ()
+int cypher ()
 {
-	printf ("cypher the message \n");
+	printf ("Cypher the message \n");
 
 	/*  load the file message.rsa */
 	FILE* mes = NULL;
@@ -279,7 +279,6 @@ int chiffre ()
 	gmp_fscanf(mes,"%Zd", m);
 	/*  close mes.rsa */
 	fclose(mes);
-
 
 	/*  load the public key from public.rsa */
 	FILE* pub = NULL;
@@ -305,6 +304,7 @@ int chiffre ()
 	/* cyper the message using modular exponentiation */
 	mpz_powm(c, m, e, n);
 
+	/*  print the cypher message in cypher.rsa */
 	FILE* cypher = NULL;
 	cypher = fopen("cypher.rsa", "w+");
 	if (cypher == NULL)
@@ -314,12 +314,13 @@ int chiffre ()
 	}
 	/*  print the cypher message in cypher.rsa */
 	gmp_fprintf (cypher, "%Zd", c);
+	gmp_printf ("Cypher message : %Zd \n", c);
 	/*  close cypher.rsa */
 	fclose(cypher);
 
 	//gmp_printf("Chiffre, n : %Zd ,e : %Zd, m : %Zd ,c : %Zd \n",n , e, m, c);
 
-	gmp_printf("Chiffre, The plain text message is : %Zd \n", m);
+	gmp_printf("Plain text message : %Zd \n", m);
 
 	/*  clear memory */
 	mpz_clears(c,n,e,m,NULL);
@@ -327,34 +328,15 @@ int chiffre ()
 	return EXIT_SUCCESS;
 }
 
-
-/* x 
-void  hash_whirlpool(mpz_t v,FILE* input){
-	struct NESSIEstruct w;        
-	u8 digest[DIGESTBYTES];
-	int i;
-	unsigned char c;
-	NESSIEinit(&w);
-	while(fscanf(input,"%c",&c) != EOF ){
-
-		NESSIEadd(&c, 8, &w);
-	}
-	NESSIEfinalize(&w, digest);
-	mpz_set_ui(v,0UL);
-	for(i = 0;i<DIGESTBYTES;i++){
-		mpz_mul_2exp (v,v, 8UL);
-		mpz_add_ui(v,v,digest[i]);
-	}
-}
-*/
-
+// TODO 
+// use ascii conversion to do with normal text
 
 /*
  * decypher the chiffre with the private key
  */
-int dechiffre ()
+int decypher ()
 {
-	printf ("decypher the message \n");
+	printf ("Decypher the message \n");
 
 	/*  load the cypher message from file */
 	FILE* cypher = NULL;
@@ -410,16 +392,16 @@ int dechiffre ()
 
 	//gmp_printf("Dechiffre, n : %Zd d : %Zd, m : %Zd ,c : %Zd \n",n , d, m, c);
 
-	gmp_printf("Dechiffre, The plain text message is : %Zd \n", m);
+	gmp_printf("Plain text message : %Zd \n", m);
 
 	/*  clear memory */
 	mpz_clears(m, c, n,d, NULL);
 	return EXIT_SUCCESS;
 }
 
-int signature ()
+int sign ()
 {
-	printf("sign the message \n");
+	printf("Sign the message \n");
 
 	/*  load the private key d to sign */
 	FILE* priv = NULL;
@@ -478,7 +460,7 @@ int signature ()
 		mpz_add_ui(h,h,result[i]);
 	}
 
-	gmp_printf ("hash : %Zd \n", h);
+	gmp_printf ("Hashed message : %Zd \n", h);
 
 	/*  sign the hashed message */
 	mpz_t s;
@@ -497,7 +479,7 @@ int signature ()
 	}
 	/*  print the signature in sign.rsa */
 	gmp_fprintf (sign, "%Zd", s);
-	gmp_printf ("sign : %Zd \n", s);
+	gmp_printf ("Signed message : %Zd \n", s);
 	/*  close sign.rsa */
 	fclose(sign);
 
@@ -506,9 +488,9 @@ int signature ()
 	return EXIT_SUCCESS;
 }
 
-bool verification ()
+int verify ()
 {
-	printf("verify the signed message \n");
+	printf("Verify the signed message \n");
 
 	bool res = false;
 
@@ -552,35 +534,37 @@ bool verification ()
 	fgets(my_string, MAX_LENGTH, mes);
 	fclose(mes);
 
-	/*  h_t = s^e mod n */
+	/*  decrypt the sign : h_t = s^e mod n */
 	mpz_t h_t; mpz_init (h_t);
 	mpz_powm(h_t, s, e, n);
 
-	// TODO h(m) = sha (m)
-	// en attendant on admet h(m)=m
-	mpz_t h;
-	mpz_init (h);
-	mpz_set_ui (h, 0);
-	
+
+	/*  hash the original message */
 	int i;
 	unsigned char result[SHA_DIGEST_LENGTH];
 
 	SHA1(my_string, strlen(my_string), result);
+
+	/*  init h for the hash */
+	mpz_t h;
+	mpz_init (h);
+	mpz_set_ui (h, 0);
 
 	for(i = 0; i < SHA_DIGEST_LENGTH; i++)
 	{
 		mpz_mul_2exp (h, h, 8UL);
 		mpz_add_ui(h,h,result[i]);
 	}
-	// FIXME pas le bon mais l idee est là
-
-	gmp_printf ("hash : %Zd \n", h);
+	
+	gmp_printf ("Hashed message : %Zd \n", h);
 
 	if (mpz_cmp (h_t, h) == 0)
 	{
-		res = true;
+		printf("The message is signed and autentified.");
+	}else
+	{
+		printf("The message is NOT signed and  NOT autentified.");
 	}
-
 	//gmp_printf("h : %Zd ,h_t : %Zd \n", h, h_t);
 
 	/*  clear memory */
@@ -588,17 +572,17 @@ bool verification ()
 
 	printf ("verif sign : %i \n", res);
 
-	return res;
+	return EXIT_SUCCESS;
 }
 
 int wrong_option ()
 {
 	printf ("use of rsa : \n \
-				rsa generate : generate the rsa keys \n \
-				rsa cypher   : cypher the file message.rsa \n  \
-				rsa decypher : decypher the file cypher.rsa \n \
-				rsa sign     : sign the file message.rsa \n \ 
-				rsa verify   : verify the file sign.rsa according to message.rsa\n");
+	rsa generate : generate the rsa keys \n \
+	rsa cypher   : cypher the file message.rsa \n  \
+	rsa decypher : decypher the file cypher.rsa \n \
+	rsa sign     : sign the file message.rsa \n \ 
+	rsa verify   : verify the file sign.rsa according to message.rsa\n");
 	return EXIT_SUCCESS;
 }
 
@@ -637,16 +621,16 @@ int main(int argc, const char *argv[])
 				generate_keys();
 				break;
 			case 2:
-				chiffre();
+				cypher();
 				break;
 			case 3:
-				dechiffre();
+				decypher();
 				break;
 			case 4:
-				signature();
+				sign();
 				break;
 			case 5:
-				verification();
+				verify();
 				break;
 			default :
 				wrong_option();
@@ -654,7 +638,7 @@ int main(int argc, const char *argv[])
 		}
 	}
 
-
+	/* Unitary Test */
 	/*  test generate_keys */
 	//generate_keys();
 
@@ -664,7 +648,6 @@ int main(int argc, const char *argv[])
 	/*  test sign & verif */
 	//signature();
 	//verification ();
-	
 
 	return EXIT_SUCCESS;
 }
