@@ -5,13 +5,13 @@
  *
  *    Description:  Header for rsa.h
  *
- *        Version:  1.0
- *        Created:  10/08/2012 10:57:21 AM
- *       Revision:  none
+ *        Version:  1.1
+ *        Created:  10/08/2012 10:57:21 
+ *       Revision:  10/14/2012 17:38:00
  *       Compiler:  gcc
  *
- *         Author:  YOUR NAME (), 
- *   Organization:  
+ *         Author:  Matthieu Keller <keller.mdpa@gmail.com>
+ *   Organization:  ENSTA-ParisTech
  *
  * =====================================================================================
  */
@@ -34,10 +34,10 @@
 
 bool miller_rabin_test(mpz_t n, int j);
 int generate_keys ();
-int chiffre ();
-int dechiffre ();
-int signature ();
-bool verification ();
+int cypher ();
+int decipher ();
+int sign ();
+int verify ();
 
 #endif
 

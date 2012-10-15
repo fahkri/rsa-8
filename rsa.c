@@ -91,7 +91,7 @@ bool miller_rabin_test(mpz_t n, int j)
 	mpz_t a;
 	mpz_init(a);
 
-	/*  the second loop indice l */
+	/*  the second loop l */
 	mpz_t l;
 	mpz_init (l);
 
@@ -147,7 +147,7 @@ bool miller_rabin_test(mpz_t n, int j)
 }
 
 /*
- * generate aleatoire keys and 
+ * generate aleatory keys and 
  * write them in private.rsa & public.rsa
  */
 int generate_keys ()
@@ -158,7 +158,7 @@ int generate_keys ()
 	mpz_t p; mpz_t q; mpz_t n; mpz_t phi;
 	mpz_init (p); mpz_init (q); mpz_init(n); mpz_init (phi);
 
-	/* generate aleatoire p & q 100 bits each. */
+	/* generate aleatory p & q 100 bits each. */
 	/*  the random generator */
 	gmp_randstate_t rs;
 	gmp_randinit_default(rs);
@@ -269,7 +269,7 @@ int cypher ()
 	mes = fopen("message.rsa", "r"); 
 	if (mes == NULL)
 	{
-		printf("Something goes wrong with teh file message.rsa you must write a file \
+		printf("Something goes wrong with the file message.rsa you must write a file \
 				message.rsa with the message to cypher. \n");
 		return EXIT_FAILURE;
 	}
@@ -301,7 +301,7 @@ int cypher ()
 	mpz_t c;
 	mpz_init(c);
 
-	/* cyper the message using modular exponentiation */
+	/* cypher the message using modular exponentiation */
 	mpz_powm(c, m, e, n);
 
 	/*  print the cypher message in cypher.rsa */
@@ -314,7 +314,7 @@ int cypher ()
 	}
 	/*  print the cypher message in cypher.rsa */
 	gmp_fprintf (cypher, "%Zd", c);
-	gmp_printf ("Cypher message : %Zd \n", c);
+	gmp_printf ("Cypher text : %Zd \n", c);
 	/*  close cypher.rsa */
 	fclose(cypher);
 
@@ -328,15 +328,12 @@ int cypher ()
 	return EXIT_SUCCESS;
 }
 
-// TODO 
-// use ascii conversion to do with normal text
-
 /*
- * decypher the chiffre with the private key
+ * decipher the ciphertext with the private key
  */
-int decypher ()
+int decipher ()
 {
-	printf ("Decypher the message \n");
+	printf ("Decipher the message \n");
 
 	/*  load the cypher message from file */
 	FILE* cypher = NULL;
@@ -344,7 +341,7 @@ int decypher ()
 	if (cypher == NULL)
 	{
 		printf ("Something goes wrong with the file cypher.rsa you must cypher a message before \
-				decypher it. \n");
+				decipher it. \n");
 		return EXIT_FAILURE;
 	}
 	/*  init the cypher message */
@@ -387,7 +384,7 @@ int decypher ()
 	mpz_t m;
 	mpz_init(m);
 
-	/*  decypher */
+	/*  decipher */
 	mpz_powm(m, c, d, n);
 
 	//gmp_printf("Dechiffre, n : %Zd d : %Zd, m : %Zd ,c : %Zd \n",n , d, m, c);
@@ -408,7 +405,7 @@ int sign ()
 	priv = fopen("private.rsa", "r");
 	if (priv == NULL)
 	{
-		printf("Something goes wrong with teh file private.rsa you must have generate \
+		printf("Something goes wrong with the file private.rsa you must have generate \
 				rsa keys. \n");
 		return EXIT_FAILURE;
 	}
@@ -421,7 +418,7 @@ int sign ()
 	pub = fopen("public.rsa", "r");
 	if (pub == NULL)
 	{
-		printf("Something goes wrong with teh file public.rsa you must have generate \
+		printf("Something goes wrong with the file public.rsa you must have generate \
 				rsa keys. \n");
 		return EXIT_FAILURE;
 	}
@@ -434,8 +431,8 @@ int sign ()
 	mes = fopen("message.rsa", "r");
 	if (mes == NULL)
 	{
-		printf("Something goes wrong with teh file message.rsa you must write a file \
-				message.rsa with the message to signe. \n");
+		printf("Something goes wrong with the file message.rsa you must write a file \
+				message.rsa with the message to sign. \n");
 		return EXIT_FAILURE;
 	}
 	char my_string [MAX_LENGTH] = "";
@@ -492,14 +489,12 @@ int verify ()
 {
 	printf("Verify the signed message \n");
 
-	bool res = false;
-
 	/*  load the public key n,e to verify */
 	FILE* pub = NULL;
 	pub = fopen("public.rsa", "r");
 	if (pub == NULL)
 	{
-		printf("Something goes wrong with teh file public.rsa you must have generate \
+		printf("Something goes wrong with the file public.rsa you must have generate \
 				rsa keys. \n");
 		return EXIT_FAILURE;
 	}
@@ -526,8 +521,8 @@ int verify ()
 	mes = fopen("message.rsa", "r");
 	if (mes == NULL)
 	{
-		printf("Something goes wrong with teh file message.rsa you must write a file \
-				message.rsa with the message to signe. \n");
+		printf("Something goes wrong with the file message.rsa you must write a file \
+				message.rsa with the message to sign. \n");
 		return EXIT_FAILURE;
 	}
 	char my_string [MAX_LENGTH] = "";
@@ -560,17 +555,15 @@ int verify ()
 
 	if (mpz_cmp (h_t, h) == 0)
 	{
-		printf("The message is signed and autentified.");
+		printf("The message is signed and authenticated. \n");
 	}else
 	{
-		printf("The message is NOT signed and  NOT autentified.");
+		printf("!!! The message is NOT signed and  NOT authenticated !!! \n");
 	}
 	//gmp_printf("h : %Zd ,h_t : %Zd \n", h, h_t);
 
 	/*  clear memory */
 	mpz_clears (h_t, s, e, n, h, NULL);
-
-	printf ("verif sign : %i \n", res);
 
 	return EXIT_SUCCESS;
 }
@@ -580,8 +573,8 @@ int wrong_option ()
 	printf ("use of rsa : \n \
 	rsa generate : generate the rsa keys \n \
 	rsa cypher   : cypher the file message.rsa \n  \
-	rsa decypher : decypher the file cypher.rsa \n \
-	rsa sign     : sign the file message.rsa \n \ 
+	rsa decipher : decipher the file cypher.rsa \n \
+	rsa sign     : sign the file message.rsa \n \
 	rsa verify   : verify the file sign.rsa according to message.rsa\n");
 	return EXIT_SUCCESS;
 }
@@ -606,7 +599,7 @@ int main(int argc, const char *argv[])
 		if (strcmp(argv[1], "cypher") ==0 )
 			option = 2;
 		
-		if (strcmp(argv[1], "decypher") ==0 )
+		if (strcmp(argv[1], "decipher") ==0 )
 			option = 3;
 
 		if (strcmp(argv[1], "sign") ==0 )
@@ -624,7 +617,7 @@ int main(int argc, const char *argv[])
 				cypher();
 				break;
 			case 3:
-				decypher();
+				decipher();
 				break;
 			case 4:
 				sign();
@@ -642,10 +635,10 @@ int main(int argc, const char *argv[])
 	/*  test generate_keys */
 	//generate_keys();
 
-	/*  test chiffre & dechiffre */
-	//chiffre ();
-	//dechiffre();
-	/*  test sign & verif */
+	/*  test cypher & decipher  */
+	//cypher ();
+	//decipher();
+	/*  test sign & verify */
 	//signature();
 	//verification ();
 
