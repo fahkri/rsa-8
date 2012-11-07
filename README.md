@@ -13,7 +13,7 @@ This program is a simple implementation of the RSA algorithm.
 	(chmod +x rsa)
 	./rsa 
 
-this last commabd will list you all option available like this :
+This last command will list you all option available like this :
 
 	use of rsa : 
 		rsa generate : generate the rsa keys 
@@ -29,7 +29,7 @@ However a classic text message can be signed and verified.
 
 ## Warning
 
-The SHA1 hash function as knwon issues do not use this code for a real application there is no real security 
+The SHA1 hash function as known issues do not use this code for a real application there is no real security 
 Use SHA2 (SHA3 soon) instead.
 
 ## Thanks
