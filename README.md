@@ -18,7 +18,7 @@ This last command will list you all option available like this :
 	use of rsa : 
 		rsa generate : generate the rsa keys 
 		rsa cypher   : cypher the file message.rsa 
-		rsa decipher : decipher the 	file cypher.rsa 
+		rsa decipher : decipher the file cypher.rsa 
 		rsa sign     : sign the file message.rsa 
 		rsa verify   : verify the file sign.rsa according to message.rsa
 
