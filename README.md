@@ -37,13 +37,11 @@ Use SHA2 (SHA3 soon) instead.
 The Miller-Rabin algorithm was inspired from :
 	http://rosettacode.org/wiki/Miller-Rabin_primality_test
 
-## Inside
+## Inside (See commentary for more informations)
 
 1. we generate rsa keys (public.rsa & private.rsa) using Miller-Rabin algorithm for probably prime number.
 2. we cypher the rsa message (message.rsa) using rsa cypher algorithm.
 3. we decipher the rsa cypher message (cypher.rsa) using rsa decipher algorithm.
 4. we sign the rsa message using rsa sign algorithm.
 5. we verify the signed message (sign.rsa) using rsa sign algorithm.
-
-See commentary for more informations.
 
